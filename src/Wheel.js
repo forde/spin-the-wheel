@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import fb from './firebase';
 
 import sound from './s1.wav';
+import palet from './palet.svg';
 
 class Wheel extends Component {
     constructor(props) {
@@ -12,11 +13,19 @@ class Wheel extends Component {
             words: [],
             ready: false,
             spinning: false,
+            swaperOn: false,
+            colors: [],
         }
 
         this.soundTimeout = null;
         this.sound = new Audio(sound);
         this.sound.volume = 0.2;
+
+        this.colors = [
+            ['#f7d046','#034347','#096241','#46AA75','#9EC85E','#EFB240','#DA582F','#CF1C3A','#8C1B4D'],
+            ['#fde0dd','#fcc5c0','#fa9fb5','#f768a1','#dd3497','#ae017e','#7a0177','#49006a','#221742'],
+            ['#E4E9DC','#D9E8D0','#C2DEB7','#A0CEA7','#72BCB3','#47A1C1','#2B77AA','#1A518D','#193267'],
+        ];
         
     }
 
@@ -27,6 +36,7 @@ class Wheel extends Component {
                 words: snapshot.val() || [],
                 ready: true
             }, () => {
+                console.log('words changed', this.state.words);
                 this._updateWheel();
             });
         });
@@ -37,6 +47,17 @@ class Wheel extends Component {
                 this.setState({ spinning: true });
                 this.wheel.spin(speed);
             }
+        });
+
+        fb.dbRef.child('colors').on('value', snapshot => {
+            const set = snapshot.val() || this.colors[0];
+            if(set !== this.state.colors) {
+                this.setState({ colors: set }, () => {
+                    this.wheel.destroy();
+                    this._initWheel();
+                    this._updateWheel();
+                }); 
+            }  
         });
     }
 
@@ -49,6 +70,7 @@ class Wheel extends Component {
         this.wheel.init({
             width: 800,
             height: 800,
+            colors: this.state.colors,
             onWheelTick: () => this._onTick(),
             onEnd: word => this._onEnd(word)
         });
@@ -91,12 +113,28 @@ class Wheel extends Component {
         //this.wheel.spin(num);
     }
 
+    _setColors(set) {
+        fb.setColors(set);
+    }
+
     render() {
-        const { ready, words, spinning } = this.state;
+        const { ready, words, spinning, swaperOn } = this.state;
         return (
             <Container>
                 <WheelContainer>
                     <div ref="wheel"></div>
+                    <ColorSwap src={palet} alt="" onClick={() => this.setState({ swaperOn: !this.state.swaperOn })}/>
+                    {swaperOn && 
+                        <ColorSwaperOptions>
+                            {this.colors.map((set, s) => {
+                                return (
+                                    <div key={s} onClick={() => this._setColors.bind(this)(set)}>
+                                        {set.map((col, c) => <span key={c} style={{background:col}} /> )}
+                                    </div>
+                                );
+                            })}
+                        </ColorSwaperOptions>
+                    }
                     {ready && !spinning && <SpinButton onClick={this._spin.bind(this)}>Spin The Wheel !</SpinButton>}
                 </WheelContainer>
                 
@@ -132,6 +170,7 @@ const Container = styled.div`
 const WheelContainer = styled.div`
     background:#fff;
     padding-bottom:50px;
+    position:relative;
     ${shadow};
     margin-bottom:30px;
 `
@@ -206,6 +245,43 @@ const DelRow = styled.span`
         border:2px solid red;   
         &:after {
             background:red;
+        }
+    }
+`
+const ColorSwap = styled.img`
+    width:40px;
+    height:40px;
+    cursor:pointer;
+    position:absolute;
+    top:20px;
+    right:20px;
+    transition: all .2s ease-in-out;
+    &:hover {
+        opacity:.8;
+    }
+`
+const ColorSwaperOptions = styled.div`
+    position:absolute;
+    top:60px;
+    right:60px;
+    z-index:10;
+    padding:5px 10px;
+    background:#fff;
+    width:160px;
+    ${shadow}
+    > div {
+        position:relative;
+        margin: 5px 0;
+        display:flex;
+        transition: all .2s ease-in-out;
+        cursor:pointer;
+        span {
+            display: flex;
+            flex:1;
+            height:20px;
+        }
+        &:hover {
+            opacity:.8;
         }
     }
 `

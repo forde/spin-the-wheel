@@ -1,16 +1,5 @@
 import Two from 'two.js';
 
-const COLORS = [
-  '#f7d046',
-  '#ff4c5a',
-  '#f08cba',
-  '#49c4d2',
-  '#924e84',
-  '#fd926f',
-  '#245a65',
-  '#ff6a76',
-  '#633d89',
-];
 const PI = Math.PI;
 const TAU = PI * 2;
 
@@ -46,6 +35,7 @@ const wheelFactory = (mountElem) => {
     width: 360,
     height: 360,
     type: 'svg',
+    colors: ['#f7d046','#034347','#096241','#46AA75','#9EC85E','#EFB240','#DA582F','#CF1C3A','#8C1B4D','#56124C'],
   };
   const friction = .996;
   //const maxSpeed = .5;
@@ -133,7 +123,7 @@ const wheelFactory = (mountElem) => {
     if (group) { destroyPaths();}
 
     const { width, height } = two;
-    const numColors = COLORS.length;
+    const numColors = options.colors.length;
     const rotationUnit = 2 * PI / words.length;
     const yOffset = width * ratios.tickerRadius * 2;
     const radius = (width - yOffset) / 2;
@@ -154,7 +144,7 @@ const wheelFactory = (mountElem) => {
       arc.noStroke();
       //arc.stroke = '#313946';
       //arc.linewidth = 2;
-      arc.fill = COLORS[i % numColors];
+      arc.fill = options.colors[i % numColors];
 
       const textVertex = {
         x: center.x + (radius - radius * ratios.edgeDist) * Math.cos(angle + rotationUnit / 2),
@@ -321,7 +311,7 @@ const wheelFactory = (mountElem) => {
   function destroy() {
     destroyPaths();
     removeEvents();
-
+    mountElem.innerHTML = '';
     return true;
   }
 

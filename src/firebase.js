@@ -18,6 +18,8 @@ const fb = {
     setWords: words => fb.dbRef.child('words').set(words),
 
     setSpeed: num => fb.dbRef.child('speed').set(num),
+
+    setColors: set => fb.dbRef.child('colors').set(set),
 }
 
 export default fb;
